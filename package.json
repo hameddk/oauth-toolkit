@@ -1,0 +1,42 @@
+{
+  "name": "@hameddk/oauth-toolkit",
+  "version": "0.1.0",
+  "description": "Provider-agnostic OAuth 2.0 client toolkit (authorization code, PKCE, refresh) with pluggable storage adapter. Zero deps. Node 18+.",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "keywords": [
+    "oauth",
+    "oauth2",
+    "pkce",
+    "authorization-code",
+    "refresh-token",
+    "auth"
+  ],
+  "author": "Hamed Sattari <h@sattari.dk>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hameddk/oauth-toolkit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hameddk/oauth-toolkit/issues"
+  },
+  "homepage": "https://github.com/hameddk/oauth-toolkit#readme",
+  "publishConfig": {
+    "access": "public"
+  }
+}
