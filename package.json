@@ -1,7 +1,7 @@
 {
   "name": "@hameddk/oauth-toolkit",
-  "version": "0.1.0",
-  "description": "Provider-agnostic OAuth 2.0 client toolkit (authorization code, PKCE, refresh) with pluggable storage adapter. Zero deps. Node 18+.",
+  "version": "0.2.0",
+  "description": "Provider-agnostic OAuth 2.0 client toolkit (authorization code, PKCE, refresh) with pluggable storage adapter. Supports providers with split exchange/refresh endpoints. Zero deps. Node 18+.",
   "type": "module",
   "main": "src/index.js",
   "exports": {
@@ -10,6 +10,7 @@
   "files": [
     "src",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "scripts": {

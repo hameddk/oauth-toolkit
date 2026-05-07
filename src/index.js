@@ -112,6 +112,41 @@ function nowSec(now) {
   return Math.floor(now() / 1000);
 }
 
+/**
+ * Validate a string is a parseable absolute URL. Throws OAuthConfigError if not.
+ */
+function assertValidUrl(value, label) {
+  try {
+    // URL constructor throws on invalid input.
+    new URL(value);
+  } catch {
+    throw new OAuthConfigError(`${label} is not a valid URL: ${value}`);
+  }
+}
+
+/**
+ * Normalize provider.tokenUrl into { exchange, refresh }.
+ * Accepts a string (used for both endpoints) or an object with both fields.
+ */
+function normalizeTokenUrl(tokenUrl) {
+  if (typeof tokenUrl === 'string') {
+    return { exchange: tokenUrl, refresh: tokenUrl };
+  }
+  if (tokenUrl && typeof tokenUrl === 'object') {
+    const { exchange, refresh } = tokenUrl;
+    if (typeof exchange !== 'string' || !exchange) {
+      throw new OAuthConfigError('provider.tokenUrl.exchange is required when tokenUrl is an object');
+    }
+    if (typeof refresh !== 'string' || !refresh) {
+      throw new OAuthConfigError('provider.tokenUrl.refresh is required when tokenUrl is an object');
+    }
+    assertValidUrl(exchange, 'provider.tokenUrl.exchange');
+    assertValidUrl(refresh, 'provider.tokenUrl.refresh');
+    return { exchange, refresh };
+  }
+  throw new OAuthConfigError('provider.tokenUrl must be a string or { exchange, refresh } object');
+}
+
 // ---------------------------------------------------------------------------
 // State store with TTL + passive cleanup
 // ---------------------------------------------------------------------------
@@ -166,7 +201,9 @@ class StateStore {
  * @typedef {Object} ProviderConfig
  * @property {string} name
  * @property {string} authorizationUrl
- * @property {string} tokenUrl
+ * @property {string|{exchange: string, refresh: string}} tokenUrl
+ *   Either a single URL used for both code exchange and refresh (the common case),
+ *   or an object with separate URLs for providers that split these endpoints.
  * @property {string|string[]} [scopes]
  * @property {string} [scopeSeparator=' ']
  * @property {boolean} [pkce=false]
@@ -231,6 +268,7 @@ export function createOAuthClient(opts) {
   if (!provider.name) throw new OAuthConfigError('provider.name is required');
   if (!provider.authorizationUrl) throw new OAuthConfigError('provider.authorizationUrl is required');
   if (!provider.tokenUrl) throw new OAuthConfigError('provider.tokenUrl is required');
+  const tokenUrls = normalizeTokenUrl(provider.tokenUrl);
   if (clientId === undefined || clientId === null) throw new OAuthConfigError('clientId is required');
   if (!redirectUri) throw new OAuthConfigError('redirectUri is required');
   if (
@@ -408,7 +446,7 @@ export function createOAuthClient(opts) {
 
     let res;
     try {
-      res = await cfg.fetch(cfg.provider.tokenUrl, { method: 'POST', headers, body });
+      res = await cfg.fetch(tokenUrls.exchange, { method: 'POST', headers, body });
     } catch (cause) {
       throw new OAuthTokenExchangeError(`Token exchange request failed: ${cause.message}`, { cause });
     }
@@ -468,7 +506,7 @@ export function createOAuthClient(opts) {
 
     let res;
     try {
-      res = await cfg.fetch(cfg.provider.tokenUrl, { method: 'POST', headers, body });
+      res = await cfg.fetch(tokenUrls.refresh, { method: 'POST', headers, body });
     } catch (cause) {
       throw new OAuthRefreshError(`Refresh request failed: ${cause.message}`, { cause });
     }

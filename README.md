@@ -102,7 +102,7 @@ await client.disconnect();                       // → void
 |---|---|---|---|
 | `name` | `string` | — | Storage key. Must be unique per provider. |
 | `authorizationUrl` | `string` | — | OAuth authorize endpoint. |
-| `tokenUrl` | `string` | — | OAuth token endpoint (code exchange + refresh). |
+| `tokenUrl` | `string \| { exchange, refresh }` | — | OAuth token endpoint(s). See [tokenUrl forms](#tokenurl-forms) below. |
 | `scopes` | `string \| string[]` | — | Joined with `scopeSeparator` if array. |
 | `scopeSeparator` | `string` | `' '` | Some providers use `','`. |
 | `pkce` | `boolean` | `false` | Enable S256 PKCE. |
@@ -110,6 +110,36 @@ await client.disconnect();                       // → void
 | `tokenEndpointFormat` | `'form' \| 'json'` | `'form'` | Body encoding. |
 | `extraAuthParams` | `Record<string,string>` | — | Extra query params on the authorize URL (e.g. `audience`, `prompt`). |
 | `parseTokenResponse` | `(data) => { access_token, refresh_token?, expires_in? }` | — | Override for non-standard responses (e.g. tokens nested under `authed_user`). |
+
+### `tokenUrl` forms
+
+Most providers use a single token endpoint for both authorization-code exchange
+and refresh-token grants. Pass it as a string:
+
+```js
+provider: {
+  tokenUrl: 'https://auth.acme.example/oauth/token',
+  // ...
+}
+```
+
+A few providers split the two operations across distinct URLs (for example,
+when the user-token exchange has different scope semantics than the standard
+refresh endpoint). Pass an object with both URLs in that case:
+
+```js
+provider: {
+  tokenUrl: {
+    exchange: 'https://auth.acme.example/oauth/user.access',  // code → tokens
+    refresh:  'https://auth.acme.example/oauth/access',       // refresh_token grant
+  },
+  // ...
+}
+```
+
+Both URLs are validated at client construction. Use the string form when in
+doubt — the object form exists specifically for providers with split token
+endpoints.
 
 ### `tokenEndpointAuth`
 
